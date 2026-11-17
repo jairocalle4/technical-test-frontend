@@ -15,7 +15,10 @@ export function Section({ title, description, actions, children, className }: Pr
   return (
     <section
       aria-labelledby={headingId}
-      className={cn('rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6', className)}
+      className={cn(
+        'min-w-0 rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6',
+        className,
+      )}
     >
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>

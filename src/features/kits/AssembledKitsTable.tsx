@@ -16,6 +16,7 @@ import {
 import { isPartialAssembly } from '../../domain/assembly.ts'
 import { formatCents, toCents } from '../../domain/money.ts'
 import { useCancelKit } from '../../hooks/mutations.ts'
+import { useToastStore } from '../../store/toastStore.ts'
 
 type Props = {
   kits: readonly AssembledKit[]
@@ -23,6 +24,13 @@ type Props = {
 
 export function AssembledKitsTable({ kits }: Props) {
   const cancelKit = useCancelKit()
+  const pushToast = useToastStore((state) => state.push)
+
+  const handleCancel = (assemblyId: string) => {
+    cancelKit.mutate(assemblyId, {
+      onSuccess: ({ message }) => pushToast({ tone: 'success', message }),
+    })
+  }
 
   if (kits.length === 0) {
     return <p className="text-sm text-slate-600">Aún no hay kits armados en esta recepción.</p>
@@ -76,7 +84,7 @@ export function AssembledKitsTable({ kits }: Props) {
                       loadingText="Anulando…"
                       disabled={cancelKit.isPending && !isCancelling}
                       aria-label={`Anular ${kit.assembled_quantity} kit(s) ${kit.kit_code}`}
-                      onClick={() => cancelKit.mutate(kit.assembly_id)}
+                      onClick={() => handleCancel(kit.assembly_id)}
                     >
                       Anular
                     </Button>
