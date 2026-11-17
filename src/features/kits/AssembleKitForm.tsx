@@ -96,7 +96,10 @@ export function AssembleKitForm({ recipes, items, availableByItem }: Props) {
               fieldClass,
               errors.requested_quantity ? 'border-rose-500' : 'border-slate-300',
             )}
-            {...register('requested_quantity', { valueAsNumber: true })}
+            {...register('requested_quantity', {
+              valueAsNumber: true,
+              onChange: () => createKit.reset(),
+            })}
           />
           {errors.requested_quantity !== undefined && (
             <p id={quantityErrorId} className="mt-1 text-sm text-rose-700">

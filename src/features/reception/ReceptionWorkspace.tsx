@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import type { AssembledKit, ReceptionItem, Recipe } from '../../api/schemas.ts'
 import { Section } from '../../components/ui/Section.tsx'
 import { computeAvailability, toAvailableQuantities } from '../../domain/availability.ts'
+import { AssembledKitsTable } from '../kits/AssembledKitsTable.tsx'
 import { AssembleKitForm } from '../kits/AssembleKitForm.tsx'
 import { ReceptionTable } from './ReceptionTable.tsx'
 
@@ -29,6 +30,13 @@ export function ReceptionWorkspace({ items, recipes, kits }: Props) {
       </Section>
       <Section title="Armar kit">
         <AssembleKitForm recipes={recipes} items={items} availableByItem={availableByItem} />
+      </Section>
+      <Section
+        title="Kits armados"
+        description="Anular un kit devuelve todas sus piezas a la disponibilidad."
+        className="lg:col-span-3"
+      >
+        <AssembledKitsTable kits={kits} />
       </Section>
     </div>
   )
