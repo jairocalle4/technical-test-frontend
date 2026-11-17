@@ -26,7 +26,7 @@ export function ReceptionWorkspace({ items, recipes, kits }: Props) {
     <div className="grid gap-6 lg:grid-cols-3">
       <Section
         title="Recepción y disponibilidad"
-        description="Las piezas con novedad no se usan para armar kits."
+        description="Disponible para kits = contada − con novedad − usada en kits. Las piezas con novedad no se usan para armar kits."
         className="lg:col-span-2"
       >
         <ReceptionTable items={items} availability={availability} />
@@ -36,14 +36,14 @@ export function ReceptionWorkspace({ items, recipes, kits }: Props) {
       </Section>
       <Section
         title="Kits armados"
-        description="Anular un kit devuelve todas sus piezas a la disponibilidad."
+        description="«Parcial» indica que se armaron menos kits de los solicitados por falta de piezas. Anular un kit devuelve todas sus piezas a la disponibilidad."
         className="lg:col-span-3"
       >
         <AssembledKitsTable kits={kits} />
       </Section>
       <Section
         title="Pie de la nota"
-        description="Detalle final y cuadre total de la recepción."
+        description="Valor total de lo recibido. Armar o anular kits solo mueve piezas entre bloques, por eso el total no cambia."
         className="lg:col-span-3"
       >
         <NoteSummary note={note} />

@@ -3,12 +3,13 @@ import { useId } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { toApiError } from '../../api/errors.ts'
 import type { ReceptionItem, Recipe } from '../../api/schemas.ts'
-import { Alert } from '../../components/ui/Alert.tsx'
 import { ApiErrorAlert } from '../../components/ui/ApiErrorAlert.tsx'
 import { Button } from '../../components/ui/Button.tsx'
 import { cn } from '../../components/ui/cn.ts'
 import { isPartialAssembly } from '../../domain/assembly.ts'
 import { useCreateKit } from '../../hooks/mutations.ts'
+import { useAssembledKits } from '../../hooks/queries.ts'
+import { useToastStore } from '../../store/toastStore.ts'
 import { assembleKitSchema, type AssembleKitFormValues } from './assembleKitSchema.ts'
 import { KitPreview } from './KitPreview.tsx'
 
@@ -23,6 +24,8 @@ const fieldClass =
 
 export function AssembleKitForm({ recipes, items, availableByItem }: Props) {
   const createKit = useCreateKit()
+  const { dataUpdatedAt: kitsUpdatedAt } = useAssembledKits()
+  const pushToast = useToastStore((state) => state.push)
   const recipeFieldId = useId()
   const quantityFieldId = useId()
   const recipeErrorId = `${recipeFieldId}-error`
@@ -45,8 +48,17 @@ export function AssembleKitForm({ recipes, items, availableByItem }: Props) {
   })
   const selectedRecipe = recipes.find((recipe) => recipe.recipe_id === recipeId)
 
+  // A rejected request (e.g. 422) only describes the stock at that moment: once the kit list
+  // changes (cancel, reset), the error is outdated and the preview shows the new situation.
+  const showSubmitError = createKit.isError && createKit.submittedAt >= kitsUpdatedAt
+
   const onSubmit = (values: AssembleKitFormValues) => {
-    createKit.mutate(values, { onSuccess: () => resetField('requested_quantity') })
+    createKit.mutate(values, {
+      onSuccess: ({ message, result }) => {
+        pushToast({ tone: isPartialAssembly(result) ? 'warning' : 'success', message })
+        resetField('requested_quantity')
+      },
+    })
   }
 
   return (
@@ -118,17 +130,7 @@ export function AssembleKitForm({ recipes, items, availableByItem }: Props) {
         </Button>
       </form>
 
-      <div aria-live="polite">
-        {createKit.isSuccess && (
-          <Alert
-            tone={isPartialAssembly(createKit.data.result) ? 'warning' : 'success'}
-            title={isPartialAssembly(createKit.data.result) ? 'Armado parcial' : 'Kit armado'}
-          >
-            {createKit.data.message}
-          </Alert>
-        )}
-      </div>
-      {createKit.isError && <ApiErrorAlert error={toApiError(createKit.error)} />}
+      {showSubmitError && <ApiErrorAlert error={toApiError(createKit.error)} />}
 
       <div className="border-t border-slate-200 pt-4">
         <h3 className="mb-2 text-sm font-semibold text-slate-800">Previsualización</h3>

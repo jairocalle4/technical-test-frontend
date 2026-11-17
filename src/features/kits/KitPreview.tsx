@@ -30,6 +30,16 @@ export function KitPreview({ recipe, requestedQuantity, items, availableByItem }
 
   const maxKits = maxAssemblable(recipe, availableByItem)
   const itemsById = new Map(items.map((item) => [item.item_id, item]))
+  const parts = recipe.parts.map((part) => {
+    const available = availableByItem.get(part.item_id) ?? 0
+    return {
+      ...part,
+      available,
+      name: itemsById.get(part.item_id)?.description ?? `Ítem ${part.item_id}`,
+      isLimiting: Math.floor(available / part.quantity) === maxKits,
+    }
+  })
+  const limitingNames = parts.filter((part) => part.isLimiting).map((part) => part.name)
   const exceedsMax =
     requestedQuantity !== undefined &&
     Number.isInteger(requestedQuantity) &&
@@ -53,37 +63,35 @@ export function KitPreview({ recipe, requestedQuantity, items, availableByItem }
             </tr>
           </thead>
           <tbody className={tbodyClass}>
-            {recipe.parts.map((part) => {
-              const available = availableByItem.get(part.item_id) ?? 0
-              const isLimiting = Math.floor(available / part.quantity) === maxKits
-              return (
-                <tr key={part.item_id}>
-                  <td className={tdClass}>
-                    <span className="mr-2">
-                      {itemsById.get(part.item_id)?.description ?? `Ítem ${part.item_id}`}
-                    </span>
-                    {isLimiting && <Badge tone="warning">Limitante</Badge>}
-                  </td>
-                  <td className={tdNumericClass}>{part.quantity}</td>
-                  <td className={tdNumericClass}>{available}</td>
-                </tr>
-              )
-            })}
+            {parts.map((part) => (
+              <tr key={part.item_id}>
+                <td className={tdClass}>
+                  <span className="mr-2">{part.name}</span>
+                  {part.isLimiting && <Badge tone="warning">Limitante</Badge>}
+                </td>
+                <td className={tdNumericClass}>{part.quantity}</td>
+                <td className={tdNumericClass}>{part.available}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
+      <p className="text-xs text-slate-600">
+        <span className="font-medium">Limitante:</span> la pieza que alcanza para menos kits y
+        define el máximo armable.
+      </p>
 
       <div aria-live="polite">
         {maxKits === 0 ? (
           <Alert tone="warning" title="Sin piezas suficientes">
-            No alcanza para armar ni 1 kit de {recipe.kit_code}. Si envías la solicitud, el
-            backend la rechazará.
+            Con la disponibilidad actual no alcanza para armar ni 1 kit de {recipe.kit_code}{' '}
+            (falta: {limitingNames.join(', ')}). Si envías la solicitud, será rechazada.
           </Alert>
         ) : (
           exceedsMax && (
-            <Alert tone="warning" title="Cantidad mayor al máximo armable">
-              Solicitaste {requestedQuantity} kit(s), pero solo alcanzan las piezas para armar{' '}
-              {maxKits}. Se armarán {maxKits}.
+            <Alert tone="warning" title={`Solo alcanza para ${maxKits} kit(s)`}>
+              Solicitaste {requestedQuantity} kit(s), pero las piezas disponibles solo alcanzan
+              para armar {maxKits}. Si confirmas, se armarán {maxKits}.
             </Alert>
           )
         )}

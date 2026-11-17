@@ -8,6 +8,10 @@ export function ResetReceptionButton() {
   const pushToast = useToastStore((state) => state.push)
 
   const handleReset = () => {
+    const confirmed = window.confirm(
+      '¿Reiniciar la recepción? Se anularán todos los kits armados y la disponibilidad volverá al estado inicial.',
+    )
+    if (!confirmed) return
     resetReception.mutate(undefined, {
       onSuccess: ({ message }) => pushToast({ tone: 'success', message }),
       onError: (error) => pushToast({ tone: 'error', message: toApiError(error).message }),

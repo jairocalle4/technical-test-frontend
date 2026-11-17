@@ -2,7 +2,11 @@ import { useEffect } from 'react'
 import { useToastStore, type Toast, type ToastTone } from '../../store/toastStore.ts'
 import { cn } from './cn.ts'
 
-const TOAST_DURATION_MS = 5000
+const toastDurationMs: Record<ToastTone, number> = {
+  success: 5000,
+  warning: 9000,
+  error: 9000,
+}
 
 const toneClasses: Record<ToastTone, string> = {
   success: 'border-emerald-300 bg-emerald-50 text-emerald-900',
@@ -20,9 +24,9 @@ function ToastItem({ toast }: { toast: Toast }) {
   const dismiss = useToastStore((state) => state.dismiss)
 
   useEffect(() => {
-    const timer = setTimeout(() => dismiss(toast.id), TOAST_DURATION_MS)
+    const timer = setTimeout(() => dismiss(toast.id), toastDurationMs[toast.tone])
     return () => clearTimeout(timer)
-  }, [dismiss, toast.id])
+  }, [dismiss, toast.id, toast.tone])
 
   return (
     <div
